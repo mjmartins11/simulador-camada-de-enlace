@@ -216,18 +216,18 @@ void CamadaEnlaceDadosTransmissoraControleDeErroErroCRC(vector<int> quadro) {
 
     tamanho_mensagem = tamanhoMensagemQuadro(quadro) + TAMANHO_GERADOR;
 
-    for (int i = 0; i < tamanho_gerador; i++)
+    for (int i = 0; i < TAMANHO_GERADOR; i++)
         mensagem.push_back(0);
 
     vector<int> dividendo;
     vector<int> resto;
 
-    for (int i = 0; i < tamanho_gerador; i++)
+    for (int i = 0; i < TAMANHO_GERADOR; i++)
         resto.push_back(mensagem[i]);
 
-    for (int i = tamanho_gerador; i < tamanho_mensagem; i) {
+    for (int i = TAMANHO_GERADOR; i < tamanho_mensagem; i) {
         if (resto[0] != 0)
-            for (int j = 0; j < tamanho_gerador; j++)
+            for (int j = 0; j < TAMANHO_GERADOR; j++)
                 if (resto[j] == gerador[j])
                     resto[j] = 0;
                 else 
@@ -237,7 +237,7 @@ void CamadaEnlaceDadosTransmissoraControleDeErroErroCRC(vector<int> quadro) {
 }
 
 vector<int> XOR(vector<int> resto, vector<int> gerador) {
-    for (int j = 0; j < tamanho_gerador; j++)
+    for (int j = 0; j < TAMANHO_GERADOR; j++)
         if (resto[j] == gerador[j])
             resto[j] = 0;
         else 
