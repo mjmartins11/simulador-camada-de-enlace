@@ -1,9 +1,11 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <math.h>
 #include <iostream>
 #include <vector>
 #include <random>
+#include <locale>
 
 using namespace std;
 
@@ -19,12 +21,12 @@ using namespace std;
 
 /*!< Funções que simulam o fluxo do dado */
 void AplicacaoTransmissora(void);
-void CamadaDeAplicacaoTransmissora(string mensagem);
+void CamadaDeAplicacaoTransmissora(wstring mensagem);
 void CamadaEnlaceDadosTransmissora(vector<int> quadro);
 void MeioDeComunicacao(vector<int> quadro);
 void CamadaEnlaceDadosReceptora(vector<int> quadro);
 void CamadaDeAplicacaoReceptora(vector<int> quadro);
-void AplicacaoReceptora(string mensagem);
+void AplicacaoReceptora(wstring mensagem);
 
 /*!< Funções de erro */
 void CamadaEnlanceDadosTransmissoraControleDeErro(int quadro[]);
@@ -55,6 +57,17 @@ vector<int> transformarEmBinarioInverso(vector<int> quadro, int n);
 */
 
 void main(void) {
+    locale::global(locale(""));
+
+    // Imprimir tabela UNICODE
+    // for(int i = 0; i < 256; i++) {
+    //     int ascii_numerico = i;
+    //     wchar_t ascii = (wchar_t)ascii_numerico;
+    //     std::wstring mensagem;
+    //     mensagem.push_back(ascii);
+    //     wcout << i << " : " << mensagem << endl;
+    // }
+
     AplicacaoTransmissora();
 } 
 
@@ -63,12 +76,12 @@ int porcentagemErro = -1;
 
 bool definirErroPorcentagem() {
     int funcaoErroTemporaria = 0;
-    cout << "Escolha a função de erro: " << endl;
-    cout << BIT_PARIDADE_PAR << " - Paridade Par" << endl;
-    cout << BIT_PARIDADE_IMPAR << " - Paridade Impar" << endl;
-    cout << CRC << " - CRC" << endl;
+    wcout << "Escolha a função de erro: " << endl;
+    wcout << BIT_PARIDADE_PAR << " - Paridade Par" << endl;
+    wcout << BIT_PARIDADE_IMPAR << " - Paridade Impar" << endl;
+    wcout << CRC << " - CRC" << endl;
     cin >> funcaoErroTemporaria;
-    cout << endl;
+    wcout << endl;
     
     if(funcaoErroTemporaria != BIT_PARIDADE_PAR && funcaoErroTemporaria != BIT_PARIDADE_IMPAR && funcaoErroTemporaria != CRC) {
         cout << "Operação inválida" << endl << endl;
@@ -76,9 +89,9 @@ bool definirErroPorcentagem() {
     }
 
     int porcentagemErroTemporaria = 0;
-    cout << "Defina a porcentagem de dar erro (valor entre 0 a 100): " << endl;
+    wcout << "Defina a porcentagem de dar erro (valor entre 0 a 100): " << endl;
     cin >> porcentagemErroTemporaria;
-    cout << endl;
+    wcout << endl;
     
     funcaoErro = funcaoErroTemporaria;
     porcentagemErro = porcentagemErroTemporaria;
@@ -86,25 +99,28 @@ bool definirErroPorcentagem() {
     return true;
 }
 
+//UNICODE: https://unicode-table.com/en/#00A9
+//Wide Char: https://www.geeksforgeeks.org/wide-char-and-library-functions-in-c/
+//String vs WString: https://stackoverflow.com/questions/402283/stdwstring-vs-stdstring
 void AplicacaoTransmissora(void) {
-    cout << "SIMULADOR DA CAMADA DE ENLACE" << endl << endl; 
-    string mensagem;
+    wcout << "SIMULADOR DA CAMADA DE ENLACE" << endl << endl; 
+    wstring mensagem;
 
     while(true) {
         int sair = 0;
-        cout << "Deseja finalizar a aplicação?" << endl;
-        cout << "0 - Não" << endl;
-        cout << "1 - Sim" << endl;
+        wcout << "Deseja finalizar a aplicação?" << endl;
+        wcout << "0 - Não" << endl;
+        wcout << "1 - Sim" << endl;
         cin >> sair;
         if(sair == 1) 
             break;
-        cout << endl;
+        wcout << endl;
         
         char c; while ((c = getchar()) != '\n' && c != EOF);
-        cout << "Digite uma mensagem:" << endl;
-        getline(cin, mensagem);
-        cout << mensagem << endl;
-        cout << endl;
+        wcout << "Digite uma mensagem:" << endl;
+        getline(wcin, mensagem);
+        wcout << mensagem << endl;
+        wcout << endl;
 
         if(!definirErroPorcentagem()) {
             funcaoErro = -1;
@@ -119,20 +135,20 @@ void AplicacaoTransmissora(void) {
 } 
 
 /*!< Cria o quadro contendo o tamanho da mensagem + mensagem (em binário) */
-void CamadaDeAplicacaoTransmissora(string mensagem) {
+void CamadaDeAplicacaoTransmissora(wstring mensagem) {
     vector<int> quadro;
 
     /*!< Transformando o tamanho da mensagem (quantidade de caracteres) em binário */
     int tamanhoMensagem = mensagem.size();
     quadro = transformarEmBinarioInverso(quadro, tamanhoMensagem);
 
-    /*!< Transformando a mensagem em binario com base no ASCII */
+    /*!< Transformando a mensagem em binario com base no UNICODE */
     for (int k = 0; k < mensagem.length(); k++) {
-        /*!< Convertendo para ASCII */
-        int ascii = int(mensagem[k]);
+        /*!< Convertendo para UNICODE */
+        int unicode = int(mensagem[k]);
 
         /*!< Convertendo ASCII para binário */
-        quadro = transformarEmBinarioInverso(quadro, ascii);
+        quadro = transformarEmBinarioInverso(quadro, unicode);
     }
 
     CamadaEnlaceDadosTransmissora(quadro);
@@ -144,21 +160,27 @@ void CamadaEnlaceDadosTransmissora(vector<int> quadro) {
     MeioDeComunicacao(quadro);
 }
 
-void MeioDeComunicacao(vector<int> quadro) {
+void MeioDeComunicacao(vector<int> quadro) { 
     vector<int> quadroPosMeioDeComunicacao;
-
+    
+    /*!< Inserindo o tamanho da mensagem no novo quadro */
+    for(int i = 0; i < INICIO_MENSAGEM_NO_QUADRO; i++) {
+        quadroPosMeioDeComunicacao.push_back(quadro[i]);
+    }
+    
     srand(time(nullptr));
-    for(int i = 0; i < quadro.size(); i++) {
+            /*!< Pulando bits de tamanho, eles nao serao alterados */
+    for(int i = INICIO_MENSAGEM_NO_QUADRO; i < quadro.size(); i++) {
         int numeroAleatorio = NUMERO_ALEATORIO_MIN + (rand()) / (RAND_MAX/(NUMERO_ALEATORIO_MAX - NUMERO_ALEATORIO_MIN));
-
-        if(numeroAleatorio < porcentagemErro) { /*!< Acontece a inversão do bit */
+        
+        if(numeroAleatorio < porcentagemErro) { /*!< Acontece a inversao do bit */
             quadroPosMeioDeComunicacao.push_back(!quadro[i]);
-        } else { /*!< Não acontece a inversão do bit */
+        } else { /*!< Nao acontece a inversao do bit */
             quadroPosMeioDeComunicacao.push_back(quadro[i]);
         }
     }
-
-    CamadaEnlaceDadosReceptora(quadroPosMeioDeComunicacao);
+    
+    CamadaDeAplicacaoReceptora(quadroPosMeioDeComunicacao);
 }
 
 /*!< Verifica se ocorreu erro e cria o quadro removendo o erro e ficando com tamanho da mensagem + mensagem (em binário) */
@@ -169,12 +191,12 @@ void CamadaEnlaceDadosReceptora(vector<int> quadro) {
 
 /*!< Transforma o quadro em mensagem string */
 void CamadaDeAplicacaoReceptora(vector<int> quadro) {
-    string mensagem;
+    wstring mensagem;
     int tamanhoMensagem = tamanhoMensagemQuadro(quadro);
 
               /*!< Pulando bits de tamanho */
     for(int i = INICIO_MENSAGEM_NO_QUADRO; i < INICIO_MENSAGEM_NO_QUADRO+tamanhoMensagem; i+=8) {
-        int ascii_numerico =  (quadro[i+0] * pow(2, 7)) 
+        int unicode_numerico =  (quadro[i+0] * pow(2, 7)) 
                             + (quadro[i+1] * pow(2, 6)) 
                             + (quadro[i+2] * pow(2, 5))
                             + (quadro[i+3] * pow(2, 4)) 
@@ -183,15 +205,20 @@ void CamadaDeAplicacaoReceptora(vector<int> quadro) {
                             + (quadro[i+6] * pow(2, 1)) 
                             + (quadro[i+7] * pow(2, 0));
 
-        char ascii = (char) ascii_numerico;
-        mensagem += ascii;
+        wchar_t unicode = 63; /*!< ? */
+        /*!< Os valores no intervalo [0, 32] e [127, 160] não são visisveis no terminal e por isso são substituidos pelo simbolo de interrogação */
+        if(!((unicode_numerico >= 0 && unicode_numerico <= 32) || (unicode_numerico >= 127 && unicode_numerico <= 160))) {
+            unicode = (wchar_t) unicode_numerico;
+        }
+
+        mensagem.push_back(unicode);
     }
 
     AplicacaoReceptora(mensagem);
 }
 
-void AplicacaoReceptora(string mensagem) {
-    cout << "A mensagem recebida foi: " << mensagem << endl;
+void AplicacaoReceptora(wstring mensagem) {
+    wcout << "A mensagem recebida foi: " << mensagem << endl << endl;
 } 
 
 /*!< *********************************** CALCULO DE ERRO *********************************** */
@@ -254,18 +281,18 @@ void CamadaEnlaceDadosReceptoraControleDeErroBitParidade(vector<int> quadro) {
 
 void CamadaEnlaceDadosReceptoraControleDeErroBitParidadePar(int qtdBit1, vector<int>bitParidade) {
     if(((qtdBit1%2 == 0) && (bitParidade[0] == 0)) || ((qtdBit1%2 != 0) && (bitParidade[0] == 1))){
-        cout << "paridade par nao apresentou erros" << endl;
+        wcout << "paridade par nao apresentou erros" << endl;
     } else{
-        cout << "paridade par apresentou erros";
+        wcout << "paridade par apresentou erros";
     }
     return;
 }
 
 void CamadaEnlaceDadosReceptoraControleDeErroBitParidadeImpar(int qtdBit1, vector<int>bitParidade) {
     if(((qtdBit1%2 != 0) && (bitParidade[0] == 0)) || ((qtdBit1%2 == 0) && (bitParidade[0] == 1))){
-        cout << "paridade impar nao apresentou erros" << endl;
+        wcout << "paridade impar nao apresentou erros" << endl;
     } else {
-        cout << "paridade impar apresentou erros";
+        wcout << "paridade impar apresentou erros";
     }
     return;
 }
@@ -401,7 +428,7 @@ int erroInteiroQuadro(vector<int> quadro) {
     
     for(int indice = tamMsgETamMsgBit, pot2 = TAMANHO_CRC-1; indice < tamMsgETamMsgBit + TAMANHO_CRC; indice++, pot2--){
         errInteiroQuadro += (quadro[indice] * pow(2, pot2));
-        cout << errInteiroQuadro << endl;
+        wcout << errInteiroQuadro << endl;
     }
 
     return  errInteiroQuadro;

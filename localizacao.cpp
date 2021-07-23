@@ -1,4 +1,3 @@
-#include <cstddef>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -81,11 +80,9 @@ void CamadaDeAplicacaoReceptora(vector<int> quadro) {
                             + (quadro[i+6] * pow(2, 1)) 
                             + (quadro[i+7] * pow(2, 0));
 
-        wcout << "ascii numerico: " << unicode_numerico << endl;
-
         wchar_t unicode = 63; /*!< ? */
-        if((unicode_numerico >= 0 && unicode_numerico <= 32) || (unicode_numerico >= 127 && unicode_numerico <= 160)) {
-        } else {
+        /*!< Os valores no intervalo [0, 32] e [127, 160] não são visisveis no terminal e por isso são substituidos pelo simbolo de interrogação */
+        if(!((unicode_numerico >= 0 && unicode_numerico <= 32) || (unicode_numerico >= 127 && unicode_numerico <= 160))) {
             unicode = (wchar_t) unicode_numerico;
         }
 
@@ -114,18 +111,6 @@ void MeioDeComunicacao(vector<int> quadro) {
             quadroPosMeioDeComunicacao.push_back(quadro[i]);
         }
     }
-    
-    // cout << "Quadro: " << endl;
-    for(int i = 0; i < quadro.size(); i++) {
-        // cout << quadro[i];
-    }
-    // cout << endl;
-    
-    // cout << "Quadro Pos Meio de Comunicacao: " << endl;
-    for(int i = 0; i < quadroPosMeioDeComunicacao.size(); i++) {
-        // cout << quadroPosMeioDeComunicacao[i];
-    }
-    // cout << endl;
     
     CamadaDeAplicacaoReceptora(quadroPosMeioDeComunicacao);
 }
@@ -157,19 +142,19 @@ void CamadaDeAplicacaoTransmissora(wstring mensagem) {
 int main() {
     locale::global(locale(""));
 
+    // Imprimir tabela UNICODE
+    // for(int i = 0; i < 256; i++) {
+    //     int ascii_numerico = i;
+    //     wchar_t ascii = (wchar_t)ascii_numerico;
+    //     std::wstring mensagem;
+    //     mensagem.push_back(ascii);
+    //     wcout << i << " : " << mensagem << endl;
+    // }
+
     wstring mensagem;
-    wcin >> mensagem;
+    getline(wcin, mensagem);
 
     CamadaDeAplicacaoTransmissora(mensagem);
     return 0;
 }
 
-    // //Imprimir tabela UNICODE
-    // for(int i = 0; i < 256; i++) {
-    //     int ascii_numerico = i;
-    //     wchar_t ascii = (wchar_t)ascii_numerico;
-
-    //     std::wstring mensagem;
-    //     mensagem.push_back(ascii);
-    //     wcout << i << " : " << mensagem << endl;
-    // }
