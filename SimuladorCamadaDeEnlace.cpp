@@ -15,7 +15,7 @@ using namespace std;
 #define INICIO_MENSAGEM_NO_QUADRO 8
 
 #define NUMERO_ALEATORIO_MIN 0
-#define NUMERO_ALEATORIO_MAX 1
+#define NUMERO_ALEATORIO_MAX 99
 
 /*!< Funções que simulam o fluxo do dado */
 void AplicacaoTransmissora(void);
@@ -76,7 +76,7 @@ bool definirErroPorcentagem() {
     }
 
     int porcentagemErroTemporaria = 0;
-    cout << "Defina a porcentagem de erro (valor entre 0 a 100): " << endl;
+    cout << "Defina a porcentagem de dar erro (valor entre 0 a 100): " << endl;
     cin >> porcentagemErroTemporaria;
     cout << endl;
     
@@ -147,35 +147,16 @@ void CamadaEnlaceDadosTransmissora(vector<int> quadro) {
 void MeioDeComunicacao(vector<int> quadro) {
     vector<int> quadroPosMeioDeComunicacao;
 
-    int erro, porcentagemDeErros; //porcentagemErro
-    int fluxoBrutoDeBitsPontoA[0], fluxoBrutoDeBitsPontoB[0];
-
-    porcentagemDeErros = 0; // 10%, 20%, 30%, ... 100%
-    fluxoBrutoDeBitsPontoA = fluxoBrutoDeBits;
-
-    while(fluxoBrutoDeBitsPontoB.lenght != fluxoBrutoDeBitsPontoA){
-        if((rand() % == ...)) // fazer a probabilidade do erro
-            fluxoBrutoDeBitsPontoB += fluxoBrutoDeBitsPontoA;
-        else { // ERRO! INVERTER (usa condicao ternaria)
-            fluxoBrutoDeBitsPontoB == 0) ?
-            fluxoBrutoDeBitsPontoA = fluxoBrutoDeBitsPontoB++;
-            fluxoBrutoDeBitsPontoA = fluxoBrutoDeBitsPontoB--;
-        }
-
-    }
-
-    int tamanhoMensagem = tamanhoMensagemQuadro(quadro);
-    for(int i = INICIO_MENSAGEM_NO_QUADRO; i < INICIO_MENSAGEM_NO_QUADRO+tamanhoMensagem; i++) {
-        srand(time(nullptr));
+    srand(time(nullptr));
+    for(int i = 0; i < quadro.size(); i++) {
         int numeroAleatorio = NUMERO_ALEATORIO_MIN + (rand()) / (RAND_MAX/(NUMERO_ALEATORIO_MAX - NUMERO_ALEATORIO_MIN));
 
-        if(numeroAleatorio < porcentagemErro) {
-            //Acontece a inversão
-        } else {
-            //Não acontece a inversão
+        if(numeroAleatorio < porcentagemErro) { /*!< Acontece a inversão do bit */
+            quadroPosMeioDeComunicacao.push_back(!quadro[i]);
+        } else { /*!< Não acontece a inversão do bit */
+            quadroPosMeioDeComunicacao.push_back(quadro[i]);
         }
     }
-
 
     CamadaEnlaceDadosReceptora(quadroPosMeioDeComunicacao);
 }
@@ -210,7 +191,7 @@ void CamadaDeAplicacaoReceptora(vector<int> quadro) {
 }
 
 void AplicacaoReceptora(string mensagem) {
-    cout << "A mensagem recebida foi:" << mensagem << endl;
+    cout << "A mensagem recebida foi: " << mensagem << endl;
 } 
 
 /*!< *********************************** CALCULO DE ERRO *********************************** */
