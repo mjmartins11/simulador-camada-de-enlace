@@ -1,6 +1,8 @@
 #include <stdio.h>
-#include <iostream>
 #include <string.h>
+#include <math.h>
+#include <iostream>
+#include <vector>
 
 using namespace std;
 
@@ -40,6 +42,22 @@ void CamadaEnlaceDadosTransmissoraControleDeErroCRC(int quadro[]);
 void CamadaEnlaceDadosTransmissoraControleDeErroBitParidadePar(int quadro[]);
 void CamadaEnlaceDadosTransmissoraControleDeErroBitParidadeImpar(int quadro[]);
 
+int tamanhoMensagemQuadro(vector<int> quadro);
+vector<int> mensagemQuadro(vector<int> quadro);
+vector<int> mensagemErroQuadro(vector<int> quadro);
+int erroQuadro(vector<int> quadro);
+
+/*!< Estrutura do Quadro
+* É um vetor de inteiros onde cada posição representa um bit;
+* Os 8 primeiros bits (inteiros) são reservados para o tamanho do quadro. Esse tamanho é a quantidade de caracteres que a mensagem possui (ou seja, a quantidade de bits será dada por esse valor * 8);
+* Os [tamanho do quadro * 8] bits seguintes representarão a mensagem do quadro. Note que para cada caractere, serão utilizados 8 bits. Além disso, o bit mais significativo estará na posição a frente;
+* Os últimos x bits serão reservados para o erro.
+*/
+
+//     0123456
+//72 : 0100100       
+//     ^
+
 void main(void) {
     AplicacaoTransmissora();
 } 
@@ -48,17 +66,36 @@ void AplicacaoTransmissora(void) {
     string mensagem;
     cout << "Digite uma mensagem:" << endl;
     cin >> mensagem;
-    
-    CamadaDeAplicacaoTransmissora(mensagem); // em um exemplo mais realistico, aqui seria dado um SEND do SO
+    CamadaDeAplicacaoTransmissora(mensagem);
 } 
-
+   
 void CamadaDeAplicacaoTransmissora(string mensagem) {
-    int quadro[] = mensagem;
-    
+    vector<int> quadro;
+
+    //Adicionar tamanho da mensagem no inicio
+
+    for (int k = 0; k < mensagem.length(); k++) {
+        /*!< Convertendo para ASCII */
+        int ascii = int(mensagem[k]);
+
+        /*!< Convertendo ASCII para binário */
+        int binarioInvertido[8];
+        int i = 0;
+        int n = ascii;
+        while (n > 0) {
+            binarioInvertido[i] = n % 2; //O bit MAIS significativo estará na posição 0
+            n = n / 2;
+            i++;
+        }
+        for(int j = 7; j >= 0; j--) {
+            quadro.push_back(binarioInvertido[j]); //O bit MAIS significativo estará na posição 0
+        }
+    }
+
     CamadaEnlaceDadosTransmissora(quadro);
 }
 
-void CamadaEnlaceDadosTransmissora(int quadro[]) {
+void CamadaEnlaceDadosTransmissora(vector<int> quadro) {
     int fluxoBrutoDeBits[];
 
     CamadaEnlanceDadosTransmissoraControleDeErro(quadro);
@@ -89,12 +126,12 @@ void MeioDeComunicacao(int fluxoBrutoDeBits[]) {
     CamadaEnlaceDadosReceptora(quadro);
 }
 
-void CamadaEnlaceDadosReceptora(int quadro[]) {
+void CamadaEnlaceDadosReceptora(vector<int> quadro) {
 
     CamadaDeAplicacaoReceptora(quadro);
 }
 
-void CamadaDeAplicacaoReceptora(int quadro[]) {
+void CamadaDeAplicacaoReceptora(vector<int> quadro) {
     string mensagem = quadro[]; // estava trabalhando com bits
     // chama proxima camada
 
@@ -105,33 +142,122 @@ void AplicacaoReceptora(string mensagem) {
     cout << "A mensagem recebida foi:" << mensagem << endl;
 } 
 
-// Funções auxiliares
+//*********************************** CALCULO DE ERRO ***********************************
 
-void CamadaEnlanceDadosTransmissoraControleDeErro(int quadro[]) {
+void CamadaEnlanceDadosTransmissoraControleDeErro(vector<int> quadro) {
     int tipoDeControleDeErro = 0; // alterar de acordo com o teste
     
     switch(tipoDeControleDeErro) {
         case BIT_PARIDADE_PAR: 
-            // codigo
+            CamadaEnlaceDadosTransmissoraControleDeErroBitParidadePar(quadro);
             break;
         case BIT_PARIDADE_IMPAR: 
-            // codigo
+            CamadaEnlaceDadosTransmissoraControleDeErroBitParidadeImpar(quadro);
             break;
         case CRC:
-            // codigo
+            CamadaEnlaceDadosTransmissoraControleDeErroErroCRC(quadro);
             break;
     }
 }
 
-void CamadaEnlaceDadosTransmissoraControleDeErroBitParidadePar(int quadro[]) {
-    // implementacao do algoritmo
+void CamadaEnlaceDadosTransmissoraControleDeErroBitParidadePar(vector<int> quadro) {
+    int tamMensagem, bitParidade, qtdBit1;
+    vector<int>mensagem;
+    
+    mensagem = mensagemQuadro(quadro);
+    tamMensagem = tamanhoMensagemQuadro(quadro);
+    bitParidade = erroQuadro(quadro);
+
+    for(int i = 0; i < tamMensagem; i++){
+        if(mensagem[i] == BIT_PARIDADE_IMPAR)
+            qtdBit1++;
+    }
+
+    if(((qtdBit1%2 == 0) && (bitParidade[0] == 0)) || ((qtdBit1%2 != 0) && (bitParidade[0] == 1))){
+        cout << "paridade par nao apresentou erros" << endl;
+    } else{
+        cout << "paridade par apresentou erros";
+    }
+    
+    return;
 }
 
-void CamadaEnlaceDadosTransmissoraControleDeErroBitParidadeImpar(int quadro[]) {
-    // implementacao do algoritmo
+void CamadaEnlaceDadosTransmissoraControleDeErroBitParidadeImpar(vector<int> quadro) {
+    int tamMensagem, bitParidade, qtdBit1;
+    vector<int>mensagem;
+    
+    mensagem = mensagemQuadro(quadro);
+    tamMensagem = tamanhoMensagemQuadro(quadro);
+    bitParidade = erroQuadro(quadro);
+
+    for(int i = 0; i < tamMensagem; i++){
+        if(mensagem[i] == BIT_PARIDADE_IMPAR)
+            qtdBit1++;
+    }
+
+    if(((qtdBit1%2 != 0) && (bitParidade[0] == 0)) || ((qtdBit1%2 == 0) && (bitParidade[0] == 1))){
+        cout << "paridade impar nao apresentou erros" << endl;
+    } else {
+        // o codigo
+        cout << "paridade impar apresentou erros";
+    }
+    
+    // o codigo
 }
 
-void CamadaEnlaceDadosTransmissoraControleDeErroCRC(int quadro[]) {
-    // implementacao do algoritmo
+void CamadaEnlaceDadosTransmissoraControleDeErroErroCRC(vector<int> quadro) {
     // usar polinomio CRC-32(IEEE 802)
+    vector<int> mensagem, crc, gerador;
+    int tamanho_mensagem, tamanho_crc, tamanho_gerador;
+
+    tamanho_crc = 5;    // pode ser de outro tamanho
+    tamanho_gerador = tamanho_crc + 1;
+    tamanho_mensagem = tamanhoMensagemQuadro(quadro) + tamanho_gerador;
+
+    crc = erroQuadro(mensagem);
+    mensagem = mensagemErroQuadro(quadro);
+
+    for (int i = 0; i < tamanho_gerador; i++)
+        mensagem.push_back(0);
+
+    for (int i = tamanho_gerador; i < tamanho_mensagem; i++) {
+        
+    }
+    
+
+
+}
+
+//*********************************** MANIPULAÇÃO DO QUADRO ***********************************
+
+
+/
+//Retorna a quantidade de bits
+int tamanhoMensagemQuadro(vector<int> quadro) {
+    //O tamanho do quadro será armazenado com o bit mais significativo na primeira posição
+    return (((quadro[0] * pow(2, 7)) 
+            + (quadro[1] * pow(2, 6)) 
+            + (quadro[2] * pow(2, 5)) 
+            + (quadro[3] * pow(2, 4)) 
+            + (quadro[4] * pow(2, 3)) 
+            + (quadro[5] * pow(2, 2)) 
+            + (quadro[6] * pow(2, 1)) 
+            + (quadro[7] * pow(2, 0))) * 8); 
+}
+
+vector<int> mensagemQuadro(vector<int> quadro) {
+    int tamanho_mensagem = tamanhoMensagemQuadro(quadro);
+    vector<int> mensagem;
+    return mensagem;
+}
+
+vector<int> mensagemErroQuadro(vector<int> quadro) {
+    int tamanho_mensagem = tamanhoMensagemQuadro(quadro);
+    vector<int> mensagem;
+    return mensagem;
+}
+
+vector<int> erroQuadro(vector<int> quadro) {
+    vector<int> erro;
+    return erro;
 }
