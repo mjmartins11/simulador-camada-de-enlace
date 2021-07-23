@@ -9,6 +9,8 @@ using namespace std;
 #define BIT_PARIDADE_PAR 0
 #define BIT_PARIDADE_IMPAR 1
 #define CRC 2
+#define TAMANHO_CRC 32
+#define TAMANHO_GERADOR TAMANHO_CRC + 1
 
 /*!< Dúvidas
 * Qual o formato da mensagem de entrada? É algo como "Hello World" ou "11001100110"? 
@@ -45,7 +47,7 @@ void CamadaEnlaceDadosTransmissoraControleDeErroBitParidadeImpar(int quadro[]);
 int tamanhoMensagemQuadro(vector<int> quadro);
 vector<int> mensagemQuadro(vector<int> quadro);
 vector<int> mensagemErroQuadro(vector<int> quadro);
-int erroQuadro(vector<int> quadro);
+vector<int> erroQuadro(vector<int> quadro);
 
 /*!< Estrutura do Quadro
 * É um vetor de inteiros onde cada posição representa um bit;
@@ -207,31 +209,47 @@ void CamadaEnlaceDadosTransmissoraControleDeErroBitParidadeImpar(vector<int> qua
 
 void CamadaEnlaceDadosTransmissoraControleDeErroErroCRC(vector<int> quadro) {
     // usar polinomio CRC-32(IEEE 802)
-    vector<int> mensagem, crc, gerador;
-    int tamanho_mensagem, tamanho_crc, tamanho_gerador;
+    vector<int> crc;
+    int tamanho_mensagem;
+    vector<int> gerador = {1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1};
+    vector<int> mensagemErroQuadro(quadro);
 
-    tamanho_crc = 5;    // pode ser de outro tamanho
-    tamanho_gerador = tamanho_crc + 1;
     tamanho_mensagem = tamanhoMensagemQuadro(quadro) + tamanho_gerador;
 
     crc = erroQuadro(mensagem);
-    mensagem = mensagemErroQuadro(quadro);
 
     for (int i = 0; i < tamanho_gerador; i++)
         mensagem.push_back(0);
 
-    for (int i = tamanho_gerador; i < tamanho_mensagem; i++) {
-        
+    vector<int> dividendo;
+    vector<int> resto;
+
+    for (int i = 0; i < tamanho_gerador; i++)
+        resto.push_back(mensagem[i]);
+
+    for (int i = tamanho_gerador; i < tamanho_mensagem; i) {
+        if (resto[0] != 0)
+            for (int j = 0; j < tamanho_gerador; j++)
+                if (resto[j] == gerador[j])
+                    resto[j] = 0;
+                else 
+                    resto[j] = 1;
+        resto[TAMANHO_CRC] = mensagem[i];
     }
-    
+}
 
-
+vector<int> XOR(vector<int> resto, vector<int> gerador) {
+    for (int j = 0; j < tamanho_gerador; j++)
+        if (resto[j] == gerador[j])
+            resto[j] = 0;
+        else 
+            resto[j] = 1;
+    return resto;
 }
 
 //*********************************** MANIPULAÇÃO DO QUADRO ***********************************
 
 
-/
 //Retorna a quantidade de bits
 int tamanhoMensagemQuadro(vector<int> quadro) {
     //O tamanho do quadro será armazenado com o bit mais significativo na primeira posição
@@ -247,17 +265,24 @@ int tamanhoMensagemQuadro(vector<int> quadro) {
 
 vector<int> mensagemQuadro(vector<int> quadro) {
     int tamanho_mensagem = tamanhoMensagemQuadro(quadro);
-    vector<int> mensagem;
-    return mensagem;
+    size_t const tamanhoMensagemEmBits = 6;
+    vector<int> mensagemQuadro(quadro.begin()+tamanhoMensagemEmBits, quadro.begin() + tamanho_mensagem);
+
+    return mensagemQuadro;
 }
 
 vector<int> mensagemErroQuadro(vector<int> quadro) {
     int tamanho_mensagem = tamanhoMensagemQuadro(quadro);
-    vector<int> mensagem;
-    return mensagem;
+    size_t const tamanhoMensagemEmBits = 6;
+    vector<int> mensagemErroQuadro(quadro.begin()+tamanhoMensagemEmBits, quadro.end());
+
+    return mensagemErroQuadro;
 }
 
 vector<int> erroQuadro(vector<int> quadro) {
-    vector<int> erro;
-    return erro;
+    int tamanho_mensagem = tamanhoMensagemQuadro(quadro);
+    size_t const tamanhoMensagemEmBits = 6;
+    vector<int> erroQuadro(quadro.begin()+tamanhoMensagemEmBits+tamanho_mensagem, quadro.end());
+    
+    return erroQuadro;
 }
