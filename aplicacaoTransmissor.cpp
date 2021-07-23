@@ -209,14 +209,12 @@ void CamadaEnlaceDadosTransmissoraControleDeErroBitParidadeImpar(vector<int> qua
 
 void CamadaEnlaceDadosTransmissoraControleDeErroErroCRC(vector<int> quadro) {
     // usar polinomio CRC-32(IEEE 802)
-    vector<int> crc;
     int tamanho_mensagem;
     vector<int> gerador = {1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1};
-    vector<int> mensagemErroQuadro(quadro);
+    vector<int> mensagem = mensagemErroQuadro(quadro);
+    vector<int> crc = erroQuadro(mensagem); 
 
-    tamanho_mensagem = tamanhoMensagemQuadro(quadro) + tamanho_gerador;
-
-    crc = erroQuadro(mensagem);
+    tamanho_mensagem = tamanhoMensagemQuadro(quadro) + TAMANHO_GERADOR;
 
     for (int i = 0; i < tamanho_gerador; i++)
         mensagem.push_back(0);
