@@ -5,7 +5,7 @@ Wellington Matos Amaral, 11315054
 Projeto para matéria de Redes de Computadores (SSC0142) para o curso de Ciências de Computação da USP São Carlos.
 
 # Simulador da Camada de Enlace
-O código `SimuladorCamadaDeEnlace.cpp` simula a camada de Enlace do Modelo OSI.
+O código `simulador.cpp` simula a camada de Enlace do Modelo OSI.
 
 ## Especificações do sistema
 Versão do sistema operacional: `Ubuntu 20.04.2 LTS (Linux)`   
